@@ -49,21 +49,21 @@ Node merge(const Node& left, const Node& right) {
     return res;
 }
 
-vector<int> a;
+vector<int> nums;
 vector<Node> tree;
 
 void build(int node, int start, int end) {
     if (start == end) {
         tree[node].len = 1;
-        if (a[start] == 0) {
+        if (nums[start] == 0) {
             tree[node].count0 = 1;
         } else {
             tree[node].count1 = 1;
         }
         tree[node].prefix_len = 1;
         tree[node].suffix_len = 1;
-        tree[node].prefix_val = a[start];
-        tree[node].suffix_val = a[start];
+        tree[node].prefix_val = nums[start];
+        tree[node].suffix_val = nums[start];
         return;
     }
     int mid = (start + end) / 2;
@@ -88,12 +88,12 @@ Node query(int node, int start, int end, int l, int r) {
 void solve() {
     int n, q;
     cin >> n >> q;
-    a.assign(n, 0);
+    nums.assign(n, 0);
     // string s;
     // cin >> s;
     for (int i = 0; i < n; ++i) {
         // a[i] = s[i] - '0';
-        cin >> a[i];
+        cin >> nums[i];
     }
 
     tree.assign(4 * n, Node());
