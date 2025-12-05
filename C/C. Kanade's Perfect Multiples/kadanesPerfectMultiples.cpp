@@ -1,142 +1,86 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <cmath>
 
 using namespace std;
 
-
-int len;
-long long k;
-vector<int> nums;
-vector<int> best_sol;
-vector<int> current_sol;
-vector<bool> is_candidate;
-vector<int> cover_counts;
-
-int get_index(int val){
-    auto it = lower_bound(nums.begin(), nums.end(), val);
-    if (it != nums.end() && *it == val){
-        return distance(nums.begin(), it);
-    }
-    return -1;
-}
-
-void backtrack(int idx){
-    while (idx < len && cover_counts[idx] > 0){
-        idx++;
-    }
-
-    if (idx == len){
-        if (best_sol.empty() || current_sol.size() < best_sol.size()){
-            best_sol = current_sol;
-        }
-        return;
-    }
-
-    if (!best_sol.empty() && current_sol.size() >= best_sol.size()){
-        return;
-    }
-
-    int target = nums[idx];
-
-    vector<int> divisors;
-    for (int i = 1; i * i <= target; ++i){
-        if (target % i == 0){
-            int pos = get_index(i);
-            if (pos != -1 && is_candidate[pos]){
-                divisors.push_back(i);
-            }
-            if (i * i != target){
-                int d2 = target / i;
-                int pos2 = get_index(d2);
-                if (pos2 != -1 && is_candidate[pos2]){
-                    divisors.push_back(d2);
-                }
-            }
-        }
-    }
-
-    sort(divisors.rbegin(), divisors.rend());
-
-    for (int d : divisors){
-        current_sol.push_back(d);
-
-        vector<int> affected_indices;
-        for (long long m = d; m <= k; m += d){
-            int pos = get_index((int)m);
-            if (pos != -1){
-                cover_counts[pos]++;
-                affected_indices.push_back(pos);
-            }
-            else
-            {
-                break;
-            }
+void solve() {
+    int n_in;
+    long long k;
+    if (!(cin >> n_in >> k)) return;
+    
+    vector<int> a(n_in);
+    for(int i=0; i<n_in; i++) cin >> a[i];
+    
+    sort(a.begin(), a.end());
+    a.erase(unique(a.begin(), a.end()), a.end());
+    int n = a.size();
+    
+    vector<vector<int>> valid_indices(n);
+    vector<bool> is_valid(n, false);
+    
+    for (int i = 0; i < n; i++) {
+        long long val = a[i];
+        
+        if (k / val > n) {
+            continue;
         }
 
-        backtrack(idx + 1);
-
-        for (int pos : affected_indices){
-            cover_counts[pos]--;
-        }
-        current_sol.pop_back();
-    }
-}
-
-void solve(){
-    cin >> len >> k;
-    nums.resize(len);
-    for (int i = 0; i < len; i++) cin >> nums[i];
-    sort(nums.begin(), nums.end());
-    nums.erase(unique(nums.begin(), nums.end()), nums.end());
-    len = nums.size();
-
-    is_candidate.assign(len, false);
-    cover_counts.assign(len, 0);
-    best_sol.clear();
-    current_sol.clear();
-
-    for (int i = 0; i < len; i++){
-        long long val = nums[i];
         bool ok = true;
-        int count = 0;
-
-        for (long long m = val; m <= k; m += val){
-            count++;
-            if (count > len){
-                ok = false;
-                break;
-            }
-            if (get_index((int)m) == -1){
+        for (long long m = val; m <= k; m += val) {
+            auto it = lower_bound(a.begin(), a.end(), (int)m);
+            if (it != a.end() && *it == m) {
+                valid_indices[i].push_back(distance(a.begin(), it));
+            } else {
                 ok = false;
                 break;
             }
         }
-        is_candidate[i] = ok;
-    }
-
-    backtrack(0);
-
-    if (best_sol.empty()){
-        cout << -1 << endl;
-    }
-    else
-    {
-        cout << best_sol.size() << endl;
-        for (int i = 0; i < best_sol.size(); i++){
-            cout << best_sol[i] << (i == best_sol.size() - 1 ? "" : " ");
+        
+        if (ok) {
+            is_valid[i] = true;
+        } else {
+            vector<int>().swap(valid_indices[i]);
         }
-        cout << endl;
+    }
+
+    vector<bool> is_covered(n, false);
+    vector<int> solution;
+
+    for (int i = 0; i < n; i++) {
+        if (is_covered[i]) continue;
+
+        if (is_valid[i]) {
+            solution.push_back(a[i]);
+            for (int idx : valid_indices[i]) {
+                is_covered[idx] = true;
+            }
+        }
+    }
+
+    bool all_covered = true;
+    for(int i=0; i<n; i++) {
+        if (!is_covered[i]) {
+            all_covered = false;
+            break;
+        }
+    }
+
+    if (all_covered) {
+        cout << solution.size() << "\n";
+        for(int i=0; i<solution.size(); i++) cout << solution[i] << (i==solution.size()-1?"":" ");
+        cout << "\n";
+    } else {
+        cout << -1 << "\n";
     }
 }
 
-int main(){
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
     int t;
-    if (cin >> t){
-        while (t--){
-            solve();
-        }
+    if (cin >> t) {
+        while(t--) solve();
     }
     return 0;
 }
