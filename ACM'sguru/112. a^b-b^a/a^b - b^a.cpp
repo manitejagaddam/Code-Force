@@ -2,7 +2,7 @@
 using namespace std;
 
 
-int power(int a, int b){
+long long power(int a, int b){
     long long ans = 1;
     while(b){
         ans *= a;
